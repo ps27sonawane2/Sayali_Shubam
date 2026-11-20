@@ -56,10 +56,10 @@ window.WEDDING_CONFIG = {
   venue: {
     name: "Samartha Lawns",
     address: "Samartha Lawns, S No 317, Kanalda Road, near KC Park, Mahavir Nagar, Jalgaon, Maharashtra 425001, India",
-    searchQuery: "Samartha Lawns, S No 317, Kanalda Road, near KC Park, Mahavir Nagar, Jalgaon, Maharashtra 425001, India",
-    /* Google map embed link attached to the Samartha Lawns venue listing. */
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=Samartha+Lawns%2C+S+No+317%2C+Kanalda+Road%2C+near+KC+Park%2C+Mahavir+Nagar%2C+Jalgaon%2C+Maharashtra+425001%2C+India",
-    embedUrl: "https://maps.google.com/maps?ie=UTF8&iwloc=&output=embed&q=Samartha+Lawns+S+No+317%2C+Kanalda+Road%2C+near+KC+Park%2C+Mahavir+Nagar%2C+Jalgaon%2C+Maharashtra+425001&t=&z=13"
+    searchQuery: "Samartha Lawns, Plot No 317/1, in front of KC Park, Kanalda Road, Mahavir Nagar, Jalgaon, Maharashtra 425001, India",
+    /* Exact plot and landmark from the Samartha Lawns address listing. */
+    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=Samartha+Lawns%2C+Plot+No+317%2F1%2C+in+front+of+KC+Park%2C+Kanalda+Road%2C+Mahavir+Nagar%2C+Jalgaon%2C+Maharashtra+425001%2C+India",
+    embedUrl: "https://maps.google.com/maps?output=embed&q=Samartha+Lawns%2C+Plot+No+317%2F1%2C+in+front+of+KC+Park%2C+Kanalda+Road%2C+Mahavir+Nagar%2C+Jalgaon%2C+Maharashtra+425001%2C+India&z=18"
   },
   contacts: [
     { name: "Sanjay Sonawane", phone: "9422563637", whatsapp: "919422563637" },

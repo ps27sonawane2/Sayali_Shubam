@@ -326,7 +326,8 @@
     moveLightbox(delta < 0 ? 1 : -1);
   });
 
-  // Try to start the family-supplied music on page load; browsers may require a tap.
+  // Try audible autoplay first. If the browser blocks sound, start muted and
+  // enable sound on the guest's first page interaction.
   const audio = document.getElementById("background-audio");
   const musicButtons = [document.getElementById("music-play"), document.getElementById("music-pause"), document.getElementById("music-mute")];
   const musicNote = document.getElementById("music-note");
@@ -347,14 +348,32 @@
       sourceLink.textContent = config.music.credit;
       credit.append(sourceLink);
     }
-    const startMusic = async () => {
+    const updateMuteButton = () => {
+      musicButtons[2].textContent = audio.muted ? "Unmute" : "Mute";
+      musicButtons[2].setAttribute("aria-pressed", String(audio.muted));
+      musicButtons[2].setAttribute("aria-label", audio.muted ? "Unmute background music" : "Mute background music");
+    };
+    const startMusic = async (fromGuestGesture = false) => {
+      if (manuallyStopped) return;
+      if (fromGuestGesture) audio.muted = false;
+      updateMuteButton();
       try {
         await audio.play();
         document.body.classList.add("music-playing");
-        musicNote.textContent = "Music is playing.";
+        musicNote.textContent = audio.muted ? "Music is muted. Tap anywhere to hear it." : "Music is playing.";
       } catch {
+        if (!fromGuestGesture && !audio.muted) {
+          audio.muted = true;
+          updateMuteButton();
+          try {
+            await audio.play();
+            document.body.classList.add("music-playing");
+            musicNote.textContent = "Music is muted. Tap anywhere to hear it.";
+            return;
+          } catch { /* Some browsers block audio until a guest gesture. */ }
+        }
         document.body.classList.remove("music-playing");
-        musicNote.textContent = "Your browser blocked autoplay. Tap anywhere to start Mangal Rang.";
+        musicNote.textContent = "Tap anywhere to start Mangal Rang.";
       }
     };
     const tryStartFromGesture = (event) => {
@@ -362,11 +381,11 @@
       if (manuallyStopped || (target instanceof Element && target.closest(".music-controls"))) return;
       window.removeEventListener("pointerdown", tryStartFromGesture, true);
       window.removeEventListener("keydown", tryStartFromGesture, true);
-      startMusic();
+      startMusic(true);
     };
     window.addEventListener("pointerdown", tryStartFromGesture, true);
     window.addEventListener("keydown", tryStartFromGesture, true);
-    musicButtons[0].addEventListener("click", () => { manuallyStopped = false; startMusic(); });
+    musicButtons[0].addEventListener("click", () => { manuallyStopped = false; startMusic(true); });
     musicButtons[1].addEventListener("click", () => {
       manuallyStopped = true;
       audio.pause();
@@ -379,11 +398,15 @@
       document.body.classList.remove("music-playing");
       musicNote.textContent = "Mangal Rang has ended.";
     });
-    musicButtons[2].addEventListener("click", (event) => {
+    musicButtons[2].addEventListener("click", () => {
       audio.muted = !audio.muted;
-      event.currentTarget.textContent = audio.muted ? "Unmute" : "Mute";
-      event.currentTarget.setAttribute("aria-pressed", String(audio.muted));
-      event.currentTarget.setAttribute("aria-label", audio.muted ? "Unmute background music" : "Mute background music");
+      updateMuteButton();
+      if (!audio.muted) {
+        manuallyStopped = false;
+        startMusic(true);
+      } else {
+        musicNote.textContent = "Music is muted.";
+      }
     });
     startMusic();
   }

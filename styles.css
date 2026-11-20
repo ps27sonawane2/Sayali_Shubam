@@ -433,6 +433,7 @@ body.music-playing .music-visualizer i:nth-child(5) { animation-delay: -.36s; }
   .film-reel { display: flex; width: 100%; max-width: 100%; align-items: stretch; gap: 0; overflow-x: auto; margin: 0; padding: 10px 0 18px; scroll-padding-inline: 0; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
   .film-reel::-webkit-scrollbar { display: none; }
   .film-frame, .film-frame-walk, .film-frame-promise, .film-frame-celebrate { flex: 0 0 100%; width: 100%; max-width: none; margin: 0; scroll-snap-align: center; scroll-snap-stop: always; transform: none; }
+  .cinema-section .film-frame.reveal, .cinema-section .film-frame.reveal.is-visible { opacity: 1; transform: none; }
   .cinema-section .film-frame-walk.reveal.is-visible, .cinema-section .film-frame-celebrate.reveal.is-visible { transform: none; }
   .film-frame-promise { transform: none; }
   .cinema-section .film-frame-promise.reveal.is-visible { transform: none; }

@@ -229,29 +229,40 @@
   if (filmReel && filmSlides.length && filmSlideStatus && filmPrevious && filmNext) {
     let activeFilmSlide = 0;
     let filmScrollFrame = 0;
-    if (window.matchMedia("(max-width: 980px)").matches) filmReel.scrollLeft = 0;
+    const isMobileFilm = window.matchMedia("(max-width: 980px)").matches;
+    if (isMobileFilm) filmReel.scrollLeft = 0;
+    const findActiveFilmSlide = () => {
+      const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;
+      return filmSlides.reduce((closest, slide, index) => {
+        const rect = slide.getBoundingClientRect();
+        const currentDistance = Math.abs(rect.left + rect.width / 2 - reelCenter);
+        const closestRect = filmSlides[closest].getBoundingClientRect();
+        return currentDistance < Math.abs(closestRect.left + closestRect.width / 2 - reelCenter) ? index : closest;
+      }, 0);
+    };
     const updateFilmSlideStatus = () => {
       filmScrollFrame = 0;
-      const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;
-      activeFilmSlide = filmSlides.reduce((closest, slide, index) => {
-        const rect = slide.getBoundingClientRect();
-        const distance = Math.abs(rect.left + rect.width / 2 - reelCenter);
-        const closestRect = filmSlides[closest].getBoundingClientRect();
-        return distance < Math.abs(closestRect.left + closestRect.width / 2 - reelCenter) ? index : closest;
-      }, 0);
+      activeFilmSlide = findActiveFilmSlide();
       filmSlideStatus.textContent = `${String(activeFilmSlide + 1).padStart(2, "0")} / ${String(filmSlides.length).padStart(2, "0")}`;
     };
     const scheduleFilmSlideStatus = () => {
       if (!filmScrollFrame) filmScrollFrame = window.requestAnimationFrame(updateFilmSlideStatus);
     };
     const moveFilmSlide = (direction) => {
-      activeFilmSlide = (activeFilmSlide + direction + filmSlides.length) % filmSlides.length;
-      const reelRect = filmReel.getBoundingClientRect();
-      const slideRect = filmSlides[activeFilmSlide].getBoundingClientRect();
-      const targetLeft = filmReel.scrollLeft + slideRect.left - reelRect.left - (filmReel.clientWidth - slideRect.width) / 2;
+      const currentSlide = findActiveFilmSlide();
+      activeFilmSlide = (currentSlide + direction + filmSlides.length) % filmSlides.length;
+      const reelLeft = filmReel.getBoundingClientRect().left;
+      const slideLeft = filmSlides[activeFilmSlide].getBoundingClientRect().left;
+      const targetLeft = filmReel.scrollLeft + slideLeft - reelLeft;
       filmReel.scrollTo({ left: targetLeft, behavior: reducedMotion ? "auto" : "smooth" });
       scheduleFilmSlideStatus();
     };
+    if (isMobileFilm) {
+      window.requestAnimationFrame(() => {
+        filmReel.scrollLeft = 0;
+        updateFilmSlideStatus();
+      });
+    }
     filmReel.addEventListener("scroll", scheduleFilmSlideStatus, { passive: true });
     window.addEventListener("resize", scheduleFilmSlideStatus, { passive: true });
     filmPrevious.addEventListener("click", () => moveFilmSlide(-1));

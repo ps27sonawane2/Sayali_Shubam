@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=mobile-film-slider">
+  <link rel="stylesheet" href="styles.css?v=mobile-film-controls-v2">
   <script src="config.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -85,6 +85,7 @@
           <h2 id="film-title">Our story,<br><em>in motion.</em></h2>
           <p class="cinema-intro">A few fleeting frames, held close for a little longer.</p>
         </header>
+        <div class="film-carousel">
         <div class="film-reel" aria-label="Cinematic moments from Sayali and Shubham's celebration">
           <figure class="film-frame film-frame-walk reveal">
             <div class="film-screen"><video class="film-video" muted autoplay loop playsinline preload="metadata" poster="assets/videos/walk-poster.jpg" aria-label="Sayali and Shubham walking together through a cloud of celebration mist"><source src="assets/videos/walk.mp4" type="video/mp4"></video><span class="film-live" aria-hidden="true"><i></i> MOVING MOMENT</span></div>
@@ -101,8 +102,9 @@
         </div>
         <div class="film-mobile-controls" role="group" aria-label="Film moment navigation">
           <button type="button" class="film-nav-button" id="film-prev" aria-label="Previous film moment">←</button>
-          <p class="film-slide-status" id="film-slide-status" aria-live="polite">01 / 03</p>
           <button type="button" class="film-nav-button" id="film-next" aria-label="Next film moment">→</button>
+        </div>
+        <p class="film-slide-status" id="film-slide-status" aria-live="polite">01 / 03</p>
         </div>
         <div class="film-foot reveal"><span class="film-foot-line"></span><p>Sayali <i>✦</i> Shubham <b>·</b> Jalgaon, 2027</p><button type="button" id="film-toggle" class="film-toggle" aria-pressed="false">Pause film <span aria-hidden="true">Ⅱ</span></button></div>
       </div>

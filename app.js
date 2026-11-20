@@ -229,6 +229,7 @@
   if (filmReel && filmSlides.length && filmSlideStatus && filmPrevious && filmNext) {
     let activeFilmSlide = 0;
     let filmScrollFrame = 0;
+    if (window.matchMedia("(max-width: 980px)").matches) filmReel.scrollLeft = 0;
     const updateFilmSlideStatus = () => {
       filmScrollFrame = 0;
       const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;

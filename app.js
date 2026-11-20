@@ -220,6 +220,44 @@
   if (reducedMotion) filmVideos.forEach((video) => video.removeAttribute("autoplay"));
   window.requestAnimationFrame(syncFilmPlayback);
 
+  // Keep the mobile film carousel centered, touch-scrollable, and easy to navigate.
+  const filmReel = document.querySelector(".film-reel");
+  const filmSlides = filmReel ? [...filmReel.querySelectorAll(".film-frame")] : [];
+  const filmSlideStatus = document.getElementById("film-slide-status");
+  const filmPrevious = document.getElementById("film-prev");
+  const filmNext = document.getElementById("film-next");
+  if (filmReel && filmSlides.length && filmSlideStatus && filmPrevious && filmNext) {
+    let activeFilmSlide = 0;
+    let filmScrollFrame = 0;
+    const updateFilmSlideStatus = () => {
+      filmScrollFrame = 0;
+      const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;
+      activeFilmSlide = filmSlides.reduce((closest, slide, index) => {
+        const rect = slide.getBoundingClientRect();
+        const distance = Math.abs(rect.left + rect.width / 2 - reelCenter);
+        const closestRect = filmSlides[closest].getBoundingClientRect();
+        return distance < Math.abs(closestRect.left + closestRect.width / 2 - reelCenter) ? index : closest;
+      }, 0);
+      filmSlideStatus.textContent = `${String(activeFilmSlide + 1).padStart(2, "0")} / ${String(filmSlides.length).padStart(2, "0")}`;
+    };
+    const scheduleFilmSlideStatus = () => {
+      if (!filmScrollFrame) filmScrollFrame = window.requestAnimationFrame(updateFilmSlideStatus);
+    };
+    const moveFilmSlide = (direction) => {
+      activeFilmSlide = (activeFilmSlide + direction + filmSlides.length) % filmSlides.length;
+      const reelRect = filmReel.getBoundingClientRect();
+      const slideRect = filmSlides[activeFilmSlide].getBoundingClientRect();
+      const targetLeft = filmReel.scrollLeft + slideRect.left - reelRect.left - (filmReel.clientWidth - slideRect.width) / 2;
+      filmReel.scrollTo({ left: targetLeft, behavior: reducedMotion ? "auto" : "smooth" });
+      scheduleFilmSlideStatus();
+    };
+    filmReel.addEventListener("scroll", scheduleFilmSlideStatus, { passive: true });
+    window.addEventListener("resize", scheduleFilmSlideStatus, { passive: true });
+    filmPrevious.addEventListener("click", () => moveFilmSlide(-1));
+    filmNext.addEventListener("click", () => moveFilmSlide(1));
+    updateFilmSlideStatus();
+  }
+
   // Subtle reveals; all content remains visible if IntersectionObserver is absent.
   const revealItems = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {

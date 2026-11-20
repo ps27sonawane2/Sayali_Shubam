@@ -383,6 +383,7 @@ body.music-playing .music-visualizer i:nth-child(5) { animation-delay: -.36s; }
 .film-foot p b { padding: 0 4px; color: #d5b97d; font-weight: 400; }
 .film-toggle { justify-self: end; min-height: 38px; padding: 0 13px; border: 1px solid #e0c99455; background: #ffffff08; color: #f4e8d5; font-size: 8px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: background .25s, border-color .25s; }
 .film-toggle:hover { border-color: #e0c994; background: #ffffff14; }
+.film-mobile-controls { display: none; }
 @keyframes orbit-float { from { transform: translate3d(0, -10px, 0) rotate(0deg); } to { transform: translate3d(14px, 18px, 0) rotate(9deg); } }
 @keyframes film-light { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 
@@ -428,16 +429,21 @@ body.music-playing .music-visualizer i:nth-child(5) { animation-delay: -.36s; }
   .cinema-heading { margin-bottom: 35px; }
   .cinema-heading h2 { font-size: clamp(65px, 14vw, 96px); }
   .cinema-intro { font-size: 17px; }
-  .film-reel { display: flex; align-items: stretch; gap: 16px; overflow-x: auto; margin: 0 calc((100vw - var(--page)) / -2); padding: 13px max(19px, calc((100vw - 560px) / 2)) 25px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: #d5b97d55 transparent; }
-  .film-reel { width: auto; }
-  .film-frame, .film-frame-walk, .film-frame-promise, .film-frame-celebrate { flex: 0 0 min(73vw, 340px); max-width: none; scroll-snap-align: center; transform: none; }
+  .film-reel { display: flex; width: min(100%, 420px); max-width: 100%; align-items: stretch; gap: 0; overflow-x: auto; margin: 0 auto; padding: 10px 0 18px; scroll-padding-inline: 0; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
+  .film-reel::-webkit-scrollbar { display: none; }
+  .film-frame, .film-frame-walk, .film-frame-promise, .film-frame-celebrate { flex: 0 0 100%; width: 100%; max-width: none; margin: 0; scroll-snap-align: center; scroll-snap-stop: always; transform: none; }
   .cinema-section .film-frame-walk.reveal.is-visible, .cinema-section .film-frame-celebrate.reveal.is-visible { transform: none; }
-  .film-frame-promise { transform: translateY(-7px); }
-  .cinema-section .film-frame-promise.reveal.is-visible { transform: translateY(-7px); }
+  .film-frame-promise { transform: none; }
+  .cinema-section .film-frame-promise.reveal.is-visible { transform: none; }
   .film-frame:hover, .cinema-section .film-frame.reveal:hover { transform: translateY(-5px); }
   .film-screen { aspect-ratio: 9 / 16; }
   .film-frame figcaption { min-height: 61px; }
   .film-frame figcaption strong { font-size: 20px; }
+  .film-mobile-controls { display: flex; width: min(100%, 420px); align-items: center; justify-content: center; gap: 22px; margin: 0 auto 18px; }
+  .film-nav-button { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border: 1px solid #e0c99470; border-radius: 50%; background: #ffffff08; color: var(--paper); font-size: 20px; line-height: 1; cursor: pointer; touch-action: manipulation; }
+  .film-nav-button:hover, .film-nav-button:focus-visible { border-color: #e0c994; background: #ffffff16; }
+  .film-nav-button:focus-visible { outline: 2px solid #e0c994; outline-offset: 3px; }
+  .film-slide-status { min-width: 74px; margin: 0; color: #f4e8d5b8; font-size: 9px; letter-spacing: .18em; text-align: center; }
   .film-foot { grid-template-columns: 1fr auto; row-gap: 18px; }
   .film-foot-line { grid-column: 1 / -1; }
   .film-foot p { font-size: 15px; }
@@ -544,8 +550,11 @@ body.music-playing .music-visualizer i:nth-child(5) { animation-delay: -.36s; }
   .gallery-two, .gallery-three { grid-column: span 1; margin-top: 0; }
   .gallery-five { grid-column: 1 / -1; }
   .music-wrap { flex-direction: column; }
-  .film-frame, .film-frame-walk, .film-frame-promise, .film-frame-celebrate { flex-basis: min(82vw, 320px); }
+  .film-frame, .film-frame-walk, .film-frame-promise, .film-frame-celebrate { flex-basis: 100%; max-width: 100%; }
   .back-to-top { top: 12px; right: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .film-reel { scroll-behavior: auto; }
 }
 @media (min-width: 2100px) {
   body { font-size: 18px; }

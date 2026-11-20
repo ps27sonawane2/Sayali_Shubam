@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=film-cards-305-centered">
+  <link rel="stylesheet" href="styles.css?v=mobile-film-slider">
   <script src="config.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -98,6 +98,11 @@
             <div class="film-screen"><video class="film-video" muted autoplay loop playsinline preload="metadata" poster="assets/videos/celebrate-poster.jpg" aria-label="Sayali and Shubham celebrating beneath a shower of sparklers"><source src="assets/videos/celebrate.mp4" type="video/mp4"></video><span class="film-live" aria-hidden="true"><i></i> THE CELEBRATION</span></div>
             <figcaption><span class="film-number">03</span><span><strong>Let the joy begin</strong><small>A night full of wonder</small></span></figcaption>
           </figure>
+        </div>
+        <div class="film-mobile-controls" role="group" aria-label="Film moment navigation">
+          <button type="button" class="film-nav-button" id="film-prev" aria-label="Previous film moment">←</button>
+          <p class="film-slide-status" id="film-slide-status" aria-live="polite">01 / 03</p>
+          <button type="button" class="film-nav-button" id="film-next" aria-label="Next film moment">→</button>
         </div>
         <div class="film-foot reveal"><span class="film-foot-line"></span><p>Sayali <i>✦</i> Shubham <b>·</b> Jalgaon, 2027</p><button type="button" id="film-toggle" class="film-toggle" aria-pressed="false">Pause film <span aria-hidden="true">Ⅱ</span></button></div>
       </div>

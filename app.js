@@ -202,9 +202,11 @@
   };
   const syncFilmPlayback = () => {
     filmVideos.forEach((video) => {
-      if (filmPausedByGuest || document.visibilityState === "hidden") {
-        video.pause();
-      } else if (video.getBoundingClientRect().bottom > 0 && video.getBoundingClientRect().top < window.innerHeight) {
+      const rect = video.getBoundingClientRect();
+      const visible = rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+      if (filmPausedByGuest || document.visibilityState === "hidden" || !visible) {
+        if (!video.paused) video.pause();
+      } else if (video.paused) {
         video.play().catch(() => { /* Posters remain available if autoplay is unavailable. */ });
       }
     });
@@ -227,10 +229,11 @@
   const filmPrevious = document.getElementById("film-prev");
   const filmNext = document.getElementById("film-next");
   if (filmReel && filmSlides.length && filmSlideStatus && filmPrevious && filmNext) {
+    const mobileFilmQuery = window.matchMedia("(max-width: 720px)");
+    const isMobileFilm = () => mobileFilmQuery.matches;
     let activeFilmSlide = 0;
     let filmScrollFrame = 0;
-    const isMobileFilm = window.matchMedia("(max-width: 980px)").matches;
-    if (isMobileFilm) filmReel.scrollLeft = 0;
+    let autoAdvanceTimer = 0;
     const findActiveFilmSlide = () => {
       const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;
       return filmSlides.reduce((closest, slide, index) => {
@@ -242,11 +245,25 @@
     };
     const updateFilmSlideStatus = () => {
       filmScrollFrame = 0;
+      if (!isMobileFilm()) return;
       activeFilmSlide = findActiveFilmSlide();
       filmSlideStatus.textContent = `${String(activeFilmSlide + 1).padStart(2, "0")} / ${String(filmSlides.length).padStart(2, "0")}`;
     };
     const scheduleFilmSlideStatus = () => {
+      if (!isMobileFilm()) return;
       if (!filmScrollFrame) filmScrollFrame = window.requestAnimationFrame(updateFilmSlideStatus);
+    };
+    const scheduleAutoAdvance = () => {
+      window.clearTimeout(autoAdvanceTimer);
+      if (!isMobileFilm() || reducedMotion || filmPausedByGuest || document.visibilityState === "hidden") return;
+      const reelRect = filmReel.getBoundingClientRect();
+      if (reelRect.bottom <= 0 || reelRect.top >= window.innerHeight) return;
+      autoAdvanceTimer = window.setTimeout(() => {
+        const currentRect = filmReel.getBoundingClientRect();
+        if (!isMobileFilm() || filmPausedByGuest || document.visibilityState === "hidden" || currentRect.bottom <= 0 || currentRect.top >= window.innerHeight) return;
+        moveFilmSlide(1);
+        scheduleAutoAdvance();
+      }, 6500);
     };
     const moveFilmSlide = (direction) => {
       const currentSlide = findActiveFilmSlide();
@@ -257,17 +274,38 @@
       filmReel.scrollTo({ left: targetLeft, behavior: reducedMotion ? "auto" : "smooth" });
       scheduleFilmSlideStatus();
     };
-    if (isMobileFilm) {
-      window.requestAnimationFrame(() => {
-        filmReel.scrollLeft = 0;
-        updateFilmSlideStatus();
-      });
+    const resetMobileFilmStart = () => {
+      if (!isMobileFilm()) return;
+      filmReel.style.scrollBehavior = "auto";
+      filmReel.scrollLeft = 0;
+      activeFilmSlide = 0;
+      updateFilmSlideStatus();
+      syncFilmPlayback();
+      window.requestAnimationFrame(() => filmReel.style.removeProperty("scroll-behavior"));
+      scheduleAutoAdvance();
+    };
+    if (isMobileFilm()) {
+      window.requestAnimationFrame(resetMobileFilmStart);
+      window.addEventListener("pageshow", resetMobileFilmStart);
     }
-    filmReel.addEventListener("scroll", scheduleFilmSlideStatus, { passive: true });
-    window.addEventListener("resize", scheduleFilmSlideStatus, { passive: true });
+    filmReel.addEventListener("scroll", () => {
+      scheduleFilmSlideStatus();
+      syncFilmPlayback();
+      scheduleAutoAdvance();
+    }, { passive: true });
+    window.addEventListener("scroll", scheduleAutoAdvance, { passive: true });
+    document.addEventListener("visibilitychange", scheduleAutoAdvance);
+    window.addEventListener("resize", () => {
+      if (isMobileFilm()) resetMobileFilmStart();
+      else window.clearTimeout(autoAdvanceTimer);
+      scheduleFilmSlideStatus();
+      syncFilmPlayback();
+    }, { passive: true });
+    filmToggle?.addEventListener("click", scheduleAutoAdvance);
     filmPrevious.addEventListener("click", () => moveFilmSlide(-1));
     filmNext.addEventListener("click", () => moveFilmSlide(1));
     updateFilmSlideStatus();
+    scheduleAutoAdvance();
   }
 
   // Subtle reveals; all content remains visible if IntersectionObserver is absent.

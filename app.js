@@ -233,6 +233,8 @@
     let filmScrollFrame = 0;
     let autoAdvanceTimer = 0;
     let autoAdvanceDisabledByGuest = false;
+    let manualFilmNavigation = false;
+    let mobileFilmInitToken = 0;
 
     const findActiveFilmSlide = () => {
       if (isMobileFilm()) {
@@ -292,70 +294,56 @@
       scheduleFilmSlideStatus();
     };
 
-    // Robust mobile initialization: force scroll to card 1, then enable snap.
-    let initAttempts = 0;
+    // Establish card 1 before enabling scroll snapping. Keep native smooth
+    // scrolling disabled until the initial position has settled; otherwise
+    // mobile browsers can animate the reset and reopen on card 2.
     const resetMobileFilmStart = () => {
-      if (!isMobileFilm()) return;
-      initAttempts = 0;
-
-      // 1. Remove snap-ready so snap is OFF during positioning.
+      if (!isMobileFilm() || manualFilmNavigation) return;
+      const initToken = ++mobileFilmInitToken;
+      window.clearTimeout(autoAdvanceTimer);
+      filmReel.style.scrollBehavior = "auto";
       filmReel.classList.remove("snap-ready");
-
-      // 2. Force scroll to the very start.
       filmReel.scrollLeft = 0;
       activeFilmSlide = 0;
 
-      // 3. Ensure first video is loading and playing.
+      // Warm the first clip while its poster remains the reliable visual fallback.
       const firstVideo = filmSlides[0].querySelector(".film-video");
       if (firstVideo) {
         if (firstVideo.preload !== "auto") { firstVideo.preload = "auto"; firstVideo.load(); }
         if (firstVideo.paused) firstVideo.play().catch(() => {});
       }
 
-      // 4. After layout settles, enable snap and verify position.
       window.requestAnimationFrame(() => {
+        if (initToken !== mobileFilmInitToken || manualFilmNavigation || !isMobileFilm()) return;
         filmReel.scrollLeft = 0;
         window.requestAnimationFrame(() => {
-          // Position is at 0, now enable snap.
+          if (initToken !== mobileFilmInitToken || manualFilmNavigation || !isMobileFilm()) return;
           filmReel.classList.add("snap-ready");
-          // Force scroll to 0 one more time AFTER snap activates.
           filmReel.scrollLeft = 0;
           updateFilmSlideStatus();
           syncFilmPlayback();
-          scheduleAutoAdvance();
-          // 5. Safety: re-check position for 2 seconds to catch late layout shifts.
-          verifyFirstCard();
+          window.requestAnimationFrame(() => {
+            if (initToken !== mobileFilmInitToken || manualFilmNavigation) return;
+            filmReel.style.removeProperty("scroll-behavior");
+            scheduleAutoAdvance();
+          });
         });
       });
     };
 
-    const verifyFirstCard = () => {
-      if (!isMobileFilm() || initAttempts >= 10) return;
-      initAttempts++;
-      window.setTimeout(() => {
-        if (!isMobileFilm()) return;
-        if (filmReel.scrollLeft > 10) {
-          filmReel.classList.remove("snap-ready");
-          filmReel.scrollLeft = 0;
-          window.requestAnimationFrame(() => {
-            filmReel.classList.add("snap-ready");
-            filmReel.scrollLeft = 0;
-            updateFilmSlideStatus();
-          });
-        }
-        if (initAttempts < 10) verifyFirstCard();
-      }, 200);
-    };
-
     const stopAutoAdvanceForManualNavigation = () => {
+      manualFilmNavigation = true;
+      mobileFilmInitToken++;
       autoAdvanceDisabledByGuest = true;
       window.clearTimeout(autoAdvanceTimer);
+      filmReel.classList.add("snap-ready");
+      filmReel.style.removeProperty("scroll-behavior");
     };
 
     if (isMobileFilm()) {
       window.requestAnimationFrame(resetMobileFilmStart);
-      window.addEventListener("pageshow", resetMobileFilmStart);
     }
+    window.addEventListener("pageshow", () => window.setTimeout(resetMobileFilmStart, 0));
     filmReel.addEventListener("pointerdown", stopAutoAdvanceForManualNavigation, { passive: true });
     filmReel.addEventListener("touchstart", stopAutoAdvanceForManualNavigation, { passive: true });
     filmReel.addEventListener("wheel", stopAutoAdvanceForManualNavigation, { passive: true });

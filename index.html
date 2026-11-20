@@ -42,6 +42,7 @@
     <a class="wordmark" href="#home" aria-label="Sayali and Shubham, home"><span>S</span><i>✦</i><span>S</span></a>
     <nav class="desktop-nav" aria-label="Main navigation">
       <a href="#couple">The couple</a>
+      <a href="#film">The film</a>
       <a href="#story">Our story</a>
       <a href="#celebrations">Celebrations</a>
       <a href="#venue">Venue</a>
@@ -51,7 +52,7 @@
     <details class="mobile-nav">
       <summary aria-label="Open navigation menu">Menu <span aria-hidden="true">☰</span></summary>
       <nav class="mobile-menu" aria-label="Mobile navigation">
-        <a href="#couple">The couple</a><a href="#story">Our story</a><a href="#celebrations">Celebrations</a><a href="#venue">Venue</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a>
+        <a href="#couple">The couple</a><a href="#film">The film</a><a href="#story">Our story</a><a href="#celebrations">Celebrations</a><a href="#venue">Venue</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a>
       </nav>
     </details>
   </header>
@@ -63,7 +64,7 @@
         <h1 id="hero-title"><span data-config="couple.bride.firstName"></span><em>&amp;</em><span data-config="couple.groom.firstName"></span></h1>
         <p class="hero-date" data-config="events.weddingDate"></p>
         <p class="hero-quote">A little invitation to a lifetime of memories.</p>
-        <a class="text-link" href="#celebrations">Explore the celebration <span aria-hidden="true">↓</span></a>
+        <a class="text-link" href="#film">Watch our little film <span aria-hidden="true">↓</span></a>
       </div>
       <div class="hero-visual">
         <figure class="hero-frame">
@@ -73,6 +74,33 @@
         <p class="hero-caption"><span data-config="couple.bride.name"></span><span class="caption-star">✦</span><span data-config="couple.groom.name"></span></p>
       </div>
       <a class="scroll-cue" href="#countdown"><span class="scroll-line"></span>Scroll to explore</a>
+    </section>
+
+    <section class="cinema-section" id="film" aria-labelledby="film-title">
+      <div class="film-orbit film-orbit-one" aria-hidden="true"></div>
+      <div class="film-orbit film-orbit-two" aria-hidden="true"></div>
+      <div class="cinema-wrap">
+        <header class="cinema-heading reveal">
+          <p class="cinema-overline"><span>✦</span> A little film of our forever <span>✦</span></p>
+          <h2 id="film-title">Our story,<br><em>in motion.</em></h2>
+          <p class="cinema-intro">A few fleeting frames, held close for a little longer.</p>
+        </header>
+        <div class="film-reel" aria-label="Cinematic moments from Sayali and Shubham's celebration">
+          <figure class="film-frame film-frame-walk reveal">
+            <div class="film-screen"><video class="film-video" muted autoplay loop playsinline preload="metadata" poster="assets/videos/walk-poster.jpg" aria-label="Sayali and Shubham walking together through a cloud of celebration mist"><source src="assets/videos/walk.mp4" type="video/mp4"></video><span class="film-live" aria-hidden="true"><i></i> MOVING MOMENT</span></div>
+            <figcaption><span class="film-number">01</span><span><strong>Side by side</strong><small>Every step, a little closer</small></span></figcaption>
+          </figure>
+          <figure class="film-frame film-frame-promise reveal">
+            <div class="film-screen"><video class="film-video" muted autoplay loop playsinline preload="metadata" poster="assets/videos/promise-poster.jpg" aria-label="Shubham gently placing a ring on Sayali's hand"><source src="assets/videos/promise.mp4" type="video/mp4"></video><span class="film-live" aria-hidden="true"><i></i> A PROMISE</span></div>
+            <figcaption><span class="film-number">02</span><span><strong>A promise, forever</strong><small>The quiet magic of this moment</small></span></figcaption>
+          </figure>
+          <figure class="film-frame film-frame-celebrate reveal">
+            <div class="film-screen"><video class="film-video" muted autoplay loop playsinline preload="metadata" poster="assets/videos/celebrate-poster.jpg" aria-label="Sayali and Shubham celebrating beneath a shower of sparklers"><source src="assets/videos/celebrate.mp4" type="video/mp4"></video><span class="film-live" aria-hidden="true"><i></i> THE CELEBRATION</span></div>
+            <figcaption><span class="film-number">03</span><span><strong>Let the joy begin</strong><small>A night full of wonder</small></span></figcaption>
+          </figure>
+        </div>
+        <div class="film-foot reveal"><span class="film-foot-line"></span><p>Sayali <i>✦</i> Shubham <b>·</b> Jalgaon, 2027</p><button type="button" id="film-toggle" class="film-toggle" aria-pressed="false">Pause film <span aria-hidden="true">Ⅱ</span></button></div>
+      </div>
     </section>
 
     <section class="countdown-section" id="countdown" aria-labelledby="countdown-title">

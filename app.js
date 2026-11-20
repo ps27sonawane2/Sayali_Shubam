@@ -190,6 +190,36 @@
   });
   document.querySelectorAll(".mobile-menu a").forEach((link) => link.addEventListener("click", () => { link.closest("details").open = false; }));
 
+  // Cinematic clips pause offscreen to avoid needless decoding and resume in view.
+  const filmVideos = [...document.querySelectorAll(".film-video")];
+  const filmToggle = document.getElementById("film-toggle");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let filmPausedByGuest = reducedMotion;
+  const updateFilmToggle = () => {
+    if (!filmToggle) return;
+    filmToggle.textContent = filmPausedByGuest ? "Play film  ▶" : "Pause film  Ⅱ";
+    filmToggle.setAttribute("aria-pressed", String(filmPausedByGuest));
+  };
+  const syncFilmPlayback = () => {
+    filmVideos.forEach((video) => {
+      if (filmPausedByGuest || document.visibilityState === "hidden") {
+        video.pause();
+      } else if (video.getBoundingClientRect().bottom > 0 && video.getBoundingClientRect().top < window.innerHeight) {
+        video.play().catch(() => { /* Posters remain available if autoplay is unavailable. */ });
+      }
+    });
+  };
+  filmToggle?.addEventListener("click", () => {
+    filmPausedByGuest = !filmPausedByGuest;
+    updateFilmToggle();
+    syncFilmPlayback();
+  });
+  window.addEventListener("scroll", syncFilmPlayback, { passive: true });
+  document.addEventListener("visibilitychange", syncFilmPlayback);
+  updateFilmToggle();
+  if (reducedMotion) filmVideos.forEach((video) => video.removeAttribute("autoplay"));
+  window.requestAnimationFrame(syncFilmPlayback);
+
   // Subtle reveals; all content remains visible if IntersectionObserver is absent.
   const revealItems = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -252,6 +282,7 @@
   const musicNote = document.getElementById("music-note");
   if (config.music.src) {
     audio.src = config.music.src;
+    audio.loop = true;
     audio.autoplay = true;
     audio.preload = "auto";
     musicButtons.forEach((button) => { button.disabled = false; });
@@ -293,7 +324,11 @@
       document.body.classList.remove("music-playing");
       musicNote.textContent = "Music stopped.";
     });
-    audio.addEventListener("ended", () => { document.body.classList.remove("music-playing"); musicNote.textContent = "Mangal Rang has ended."; });
+    audio.addEventListener("ended", () => {
+      if (audio.loop) return;
+      document.body.classList.remove("music-playing");
+      musicNote.textContent = "Mangal Rang has ended.";
+    });
     musicButtons[2].addEventListener("click", (event) => {
       audio.muted = !audio.muted;
       event.currentTarget.textContent = audio.muted ? "Unmute" : "Mute";

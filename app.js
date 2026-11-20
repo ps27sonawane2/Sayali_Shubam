@@ -226,15 +226,21 @@
   const filmReel = document.querySelector(".film-reel");
   const filmSlides = filmReel ? [...filmReel.querySelectorAll(".film-frame")] : [];
   const filmSlideStatus = document.getElementById("film-slide-status");
-  const filmPrevious = document.getElementById("film-prev");
-  const filmNext = document.getElementById("film-next");
-  if (filmReel && filmSlides.length && filmSlideStatus && filmPrevious && filmNext) {
+  if (filmReel && filmSlides.length && filmSlideStatus) {
     const mobileFilmQuery = window.matchMedia("(max-width: 720px)");
     const isMobileFilm = () => mobileFilmQuery.matches;
     let activeFilmSlide = 0;
     let filmScrollFrame = 0;
     let autoAdvanceTimer = 0;
+    let autoAdvanceDisabledByGuest = false;
+
     const findActiveFilmSlide = () => {
+      if (isMobileFilm()) {
+        const slideWidth = filmReel.clientWidth;
+        if (slideWidth > 0) {
+          return Math.max(0, Math.min(filmSlides.length - 1, Math.round(filmReel.scrollLeft / slideWidth)));
+        }
+      }
       const reelCenter = filmReel.getBoundingClientRect().left + filmReel.clientWidth / 2;
       return filmSlides.reduce((closest, slide, index) => {
         const rect = slide.getBoundingClientRect();
@@ -243,51 +249,116 @@
         return currentDistance < Math.abs(closestRect.left + closestRect.width / 2 - reelCenter) ? index : closest;
       }, 0);
     };
+
     const updateFilmSlideStatus = () => {
       filmScrollFrame = 0;
       if (!isMobileFilm()) return;
       activeFilmSlide = findActiveFilmSlide();
       filmSlideStatus.textContent = `${String(activeFilmSlide + 1).padStart(2, "0")} / ${String(filmSlides.length).padStart(2, "0")}`;
     };
+
     const scheduleFilmSlideStatus = () => {
       if (!isMobileFilm()) return;
       if (!filmScrollFrame) filmScrollFrame = window.requestAnimationFrame(updateFilmSlideStatus);
     };
+
     const scheduleAutoAdvance = () => {
       window.clearTimeout(autoAdvanceTimer);
-      if (!isMobileFilm() || reducedMotion || filmPausedByGuest || document.visibilityState === "hidden") return;
+      if (!isMobileFilm() || reducedMotion || filmPausedByGuest || autoAdvanceDisabledByGuest || document.visibilityState === "hidden") return;
       const reelRect = filmReel.getBoundingClientRect();
       if (reelRect.bottom <= 0 || reelRect.top >= window.innerHeight) return;
-      autoAdvanceTimer = window.setTimeout(() => {
+      const advanceWhenReady = () => {
         const currentRect = filmReel.getBoundingClientRect();
-        if (!isMobileFilm() || filmPausedByGuest || document.visibilityState === "hidden" || currentRect.bottom <= 0 || currentRect.top >= window.innerHeight) return;
+        if (!isMobileFilm() || filmPausedByGuest || autoAdvanceDisabledByGuest || document.visibilityState === "hidden" || currentRect.bottom <= 0 || currentRect.top >= window.innerHeight) return;
+        const currentVideo = filmSlides[findActiveFilmSlide()].querySelector(".film-video");
+        if (currentVideo && (currentVideo.readyState < 2 || currentVideo.paused)) {
+          autoAdvanceTimer = window.setTimeout(advanceWhenReady, 1000);
+          return;
+        }
         moveFilmSlide(1);
         scheduleAutoAdvance();
-      }, 6500);
+      };
+      const activeDelay = findActiveFilmSlide() === 0 ? 20000 : 12000;
+      autoAdvanceTimer = window.setTimeout(advanceWhenReady, activeDelay);
     };
+
     const moveFilmSlide = (direction) => {
       const currentSlide = findActiveFilmSlide();
       activeFilmSlide = (currentSlide + direction + filmSlides.length) % filmSlides.length;
-      const reelLeft = filmReel.getBoundingClientRect().left;
-      const slideLeft = filmSlides[activeFilmSlide].getBoundingClientRect().left;
-      const targetLeft = filmReel.scrollLeft + slideLeft - reelLeft;
+      const targetLeft = isMobileFilm()
+        ? activeFilmSlide * filmReel.clientWidth
+        : filmReel.scrollLeft + filmSlides[activeFilmSlide].getBoundingClientRect().left - filmReel.getBoundingClientRect().left;
       filmReel.scrollTo({ left: targetLeft, behavior: reducedMotion ? "auto" : "smooth" });
       scheduleFilmSlideStatus();
     };
+
+    // Robust mobile initialization: force scroll to card 1, then enable snap.
+    let initAttempts = 0;
     const resetMobileFilmStart = () => {
       if (!isMobileFilm()) return;
-      filmReel.style.scrollBehavior = "auto";
+      initAttempts = 0;
+
+      // 1. Remove snap-ready so snap is OFF during positioning.
+      filmReel.classList.remove("snap-ready");
+
+      // 2. Force scroll to the very start.
       filmReel.scrollLeft = 0;
       activeFilmSlide = 0;
-      updateFilmSlideStatus();
-      syncFilmPlayback();
-      window.requestAnimationFrame(() => filmReel.style.removeProperty("scroll-behavior"));
-      scheduleAutoAdvance();
+
+      // 3. Ensure first video is loading and playing.
+      const firstVideo = filmSlides[0].querySelector(".film-video");
+      if (firstVideo) {
+        if (firstVideo.preload !== "auto") { firstVideo.preload = "auto"; firstVideo.load(); }
+        if (firstVideo.paused) firstVideo.play().catch(() => {});
+      }
+
+      // 4. After layout settles, enable snap and verify position.
+      window.requestAnimationFrame(() => {
+        filmReel.scrollLeft = 0;
+        window.requestAnimationFrame(() => {
+          // Position is at 0, now enable snap.
+          filmReel.classList.add("snap-ready");
+          // Force scroll to 0 one more time AFTER snap activates.
+          filmReel.scrollLeft = 0;
+          updateFilmSlideStatus();
+          syncFilmPlayback();
+          scheduleAutoAdvance();
+          // 5. Safety: re-check position for 2 seconds to catch late layout shifts.
+          verifyFirstCard();
+        });
+      });
     };
+
+    const verifyFirstCard = () => {
+      if (!isMobileFilm() || initAttempts >= 10) return;
+      initAttempts++;
+      window.setTimeout(() => {
+        if (!isMobileFilm()) return;
+        if (filmReel.scrollLeft > 10) {
+          filmReel.classList.remove("snap-ready");
+          filmReel.scrollLeft = 0;
+          window.requestAnimationFrame(() => {
+            filmReel.classList.add("snap-ready");
+            filmReel.scrollLeft = 0;
+            updateFilmSlideStatus();
+          });
+        }
+        if (initAttempts < 10) verifyFirstCard();
+      }, 200);
+    };
+
+    const stopAutoAdvanceForManualNavigation = () => {
+      autoAdvanceDisabledByGuest = true;
+      window.clearTimeout(autoAdvanceTimer);
+    };
+
     if (isMobileFilm()) {
       window.requestAnimationFrame(resetMobileFilmStart);
       window.addEventListener("pageshow", resetMobileFilmStart);
     }
+    filmReel.addEventListener("pointerdown", stopAutoAdvanceForManualNavigation, { passive: true });
+    filmReel.addEventListener("touchstart", stopAutoAdvanceForManualNavigation, { passive: true });
+    filmReel.addEventListener("wheel", stopAutoAdvanceForManualNavigation, { passive: true });
     filmReel.addEventListener("scroll", () => {
       scheduleFilmSlideStatus();
       syncFilmPlayback();
@@ -297,15 +368,12 @@
     document.addEventListener("visibilitychange", scheduleAutoAdvance);
     window.addEventListener("resize", () => {
       if (isMobileFilm()) resetMobileFilmStart();
-      else window.clearTimeout(autoAdvanceTimer);
+      else { window.clearTimeout(autoAdvanceTimer); filmReel.classList.remove("snap-ready"); }
       scheduleFilmSlideStatus();
       syncFilmPlayback();
     }, { passive: true });
     filmToggle?.addEventListener("click", scheduleAutoAdvance);
-    filmPrevious.addEventListener("click", () => moveFilmSlide(-1));
-    filmNext.addEventListener("click", () => moveFilmSlide(1));
     updateFilmSlideStatus();
-    scheduleAutoAdvance();
   }
 
   // Subtle reveals; all content remains visible if IntersectionObserver is absent.
